@@ -12,5 +12,6 @@
     },
     "autoload": {
         "psr-4": {"DockerMonologHandler\\": "src"}
-    }
+    },
+    "minimum-stability": "stable"
 }
