@@ -1,0 +1,16 @@
+{
+    "name": "relaxart/monolog-docker-handler",
+    "description": "Docker handler for monolog",
+    "authors": [
+        {
+            "name": "Ilya Isaev",
+            "email": "me@ilyaisaev.com"
+        }
+    ],
+    "require": {
+       "monolog/monolog": "~1.11"
+    },
+    "autoload": {
+        "psr-4": {"Relaxart\\": "src/Relaxart"}
+    }
+}
