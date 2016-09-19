@@ -11,6 +11,6 @@
        "monolog/monolog": "~1.11"
     },
     "autoload": {
-        "psr-4": {"Relaxart\\": "src/Relaxart"}
+        "psr-4": {"DockerMonologHandler\\": "src"}
     }
 }
