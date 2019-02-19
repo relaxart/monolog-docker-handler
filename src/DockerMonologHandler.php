@@ -3,6 +3,7 @@
 namespace DockerMonologHandler;
 
 use Monolog\Formatter\LineFormatter;
+use Monolog\Formatter\FormatterInterface;
 use Monolog\Handler\AbstractProcessingHandler;
 use Monolog\Logger;
 
@@ -19,18 +20,52 @@ use Monolog\Logger;
  */
 class DockerMonologHandler extends AbstractProcessingHandler
 {
-    protected $process;
+    /**
+     * @var resource
+     */
+    private $resource;
 
     /**
-     * DockerHandler constructor.
-     * @param int      $process
-     * @param bool|int $level
-     * @param bool     $bubble
+     * @var string
      */
-    public function __construct($process = 1, $stream = 2, $level = Logger::DEBUG, $bubble = true)
+    private $command;
+
+    /**
+     * Constructor
+     *
+     * @param int $processId PID, this should be 1
+     * @param int $fileDescriptor Accept 1: stdout, or 2: stderr
+     * @param string|int $level Log level
+     * @param bool $bubble
+     * @param FormatterInterface|null $formatter
+     */
+    public function __construct(
+        int $processId = 1,
+        int $fileDescriptor = 2,
+        $level = Logger::DEBUG,
+        bool $bubble = true,
+        FormatterInterface $formatter = null
+    )
     {
-        $this->process = "/proc/{$process}/fd/{$stream}";
+        $this->command = sprintf('cat - >> /proc/%d/fd/%d', $processId, $fileDescriptor);
+
         parent::__construct($level, $bubble);
+
+        if (null !== $formatter) {
+            $this->setFormatter($formatter);
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function close()
+    {
+        if (is_resource($this->resource)) {
+            pclose($this->resource);
+        }
+
+        parent::close();
     }
 
     /**
@@ -38,9 +73,11 @@ class DockerMonologHandler extends AbstractProcessingHandler
      */
     protected function write(array $record)
     {
-        $rs = popen("cat - > ".$this->process, 'w');
-        fwrite($rs, $record["formatted"]);
-        pclose($rs);
+        if (!is_resource($this->resource)) {
+            $this->resource = popen($this->command, 'w');
+        }
+
+        fwrite($this->resource, (string)$record['formatted']);
     }
 
     /**
